@@ -36,6 +36,7 @@ contract Raffle  is VRFConsumerBaseV2Plus{
     error Raffle__NotEnoughEthSent();
     error Raffle__TransferFailed();
     error Raffle__NotOpen();
+    error Raffle__UpkeepNotNeeded(uint256 balance, uint256 players, RaffleState state);
 
     /* Types */
     enum RaffleState {OPEN, FINALIZING }
@@ -87,14 +88,26 @@ contract Raffle  is VRFConsumerBaseV2Plus{
         emit EnteredRaffle(msg.sender);
     }
 
+    /// @dev This is the function that Chainlink Nodes are going to call to check if the winner can be picked
+    /// @return upkeepNeeded true if it is time to pick winner
+    function checkUpkeep(bytes memory) public view returns(bool upkeepNeeded, bytes memory) {
+        bool timePassed = (block.timestamp - s_lastTimeStamp) >= i_interval;
+        bool lotteryIsOpen = s_RaffleState == RaffleState.OPEN;
+        bool hasETH = address(this).balance > 0;
+        bool hasPlayers = s_players.length > 0;
+        upkeepNeeded = timePassed && lotteryIsOpen && hasETH && hasPlayers;
+        return (upkeepNeeded,"");
+    }
+
     // Generate Random number to pick player automatically
-    function pickWinner() external {
+    function performUpkeep(bytes calldata /* performData */) external {
         // check if enough time has passed
-        if (block.timestamp - s_lastTimeStamp < i_interval){
-            revert();
+        (bool upkeepNeeded,) = checkUpkeep("");
+        if (!upkeepNeeded){
+            revert Raffle__UpkeepNotNeeded(address(this).balance, s_players.length, s_RaffleState);
         }
         s_RaffleState = RaffleState.FINALIZING;
-        uint256 requestId = s_vrfCoordinator.requestRandomWords(
+        s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: i_keyhash,
                 subId: i_subscriptionId,
@@ -110,7 +123,7 @@ contract Raffle  is VRFConsumerBaseV2Plus{
         );
     }
 
-    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal virtual override{
+    function fulfillRandomWords(uint256 /* requestId */, uint256[] calldata randomWords) internal virtual override{
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
