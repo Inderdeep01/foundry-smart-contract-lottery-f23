@@ -6,6 +6,7 @@ import {Raffle} from "src/Raffle.sol";
 import {DeployRaffle} from "script/DeployRaffle.s.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {Vm} from "forge-std/Vm.sol";
+import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 
 contract RaffleTest is Test {
     uint256 entranceFee;
@@ -164,5 +165,13 @@ contract RaffleTest is Test {
         Raffle.RaffleState state = raffle.getRaffleState();
         assert(state == Raffle.RaffleState.FINALIZING);
         assert(uint256(requestId)>0);
+    }
+
+    /*///////////////////////////////////////////////////////////////////////////////
+                                FULFILL RANDOM WORDS
+    ///////////////////////////////////////////////////////////////////////////////*/
+    function testFulfillRandomwordsCanOnlyBeCalledAfterPerformUpkeep(uint256 subscriptionId) public enterRaffle {
+        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(subscriptionId, address(raffle));
     }
 }
