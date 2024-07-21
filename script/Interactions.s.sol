@@ -33,7 +33,7 @@ contract SubscriptionFactory is Script {
 }
 
 contract SubcriptionManager is Script, CodeConstants {
-    uint256 public constant FUND_AMOUNT = 25 ether;
+    uint256 public constant FUND_AMOUNT = 1 ether;
 
     function fundSubscriptionUsingConfig() public {
         HelperConfig helperConfig = new HelperConfig();
@@ -48,7 +48,7 @@ contract SubcriptionManager is Script, CodeConstants {
 
         if(block.chainid == LOCAL_CHAIN_ID){
             vm.startBroadcast();
-            VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(subId, FUND_AMOUNT);
+            VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(subId, FUND_AMOUNT*300);
             vm.stopBroadcast();
         } else {
             vm.startBroadcast();

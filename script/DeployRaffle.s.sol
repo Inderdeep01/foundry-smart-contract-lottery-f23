@@ -24,7 +24,7 @@ contract DeployRaffle is Script {
             subscriptionManager.fundSubscription(config.vrfCoordinator, config.subId, config.link);
         }
 
-        vm.startBroadcast();
+        vm.startBroadcast(config.account);
         Raffle raffle = new Raffle(config.entranceFee, config.interval, config.vrfCoordinator, config.gaslane, config.subId, config.callbackGasLimit);
         vm.stopBroadcast();
 

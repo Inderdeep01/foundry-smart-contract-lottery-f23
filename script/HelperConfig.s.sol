@@ -11,12 +11,12 @@ contract CodeConstants {
     uint96 public MOCK_GAS_PRICE_LINK = 1e9;
     int256 public MOCK_WEI_PER_UNIT_LINK = 4e15;
 
-    uint256 public ETH_SEPOLIA_CHAIN_ID = 1115111;
+    uint256 public ETH_SEPOLIA_CHAIN_ID = 11155111;
     uint256 public LOCAL_CHAIN_ID = 31337;
 }
 
 contract HelperConfig is CodeConstants, Script {
-    error HelperConfig__UnsupportedChainId();
+    error HelperConfig__UnsupportedChainId(uint256 chainid);
 
     struct NetworkConfig {
         uint256 entranceFee;
@@ -26,6 +26,7 @@ contract HelperConfig is CodeConstants, Script {
         uint256 subId;
         uint32 callbackGasLimit;
         address link;
+        address account;
     }
 
     NetworkConfig public localNetworkConfig;
@@ -42,7 +43,7 @@ contract HelperConfig is CodeConstants, Script {
             // make and return anvil chain config
             return getOrCreateAnvilEthConfig();
         } else {
-            revert HelperConfig__UnsupportedChainId();
+            revert HelperConfig__UnsupportedChainId(block.chainid);
         }
     }
 
@@ -58,7 +59,8 @@ contract HelperConfig is CodeConstants, Script {
             gaslane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             subId: 0,
             callbackGasLimit: 500000,
-            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
+            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789,
+            account: 0xA5FC1D6a75dC53d38FFf512366fc7BA26a6383AA
         });
     }
 
@@ -79,7 +81,8 @@ contract HelperConfig is CodeConstants, Script {
             gaslane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             subId: 0,
             callbackGasLimit: 500000,
-            link: address(linkToken)
+            link: address(linkToken),
+            account: 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38
         });
 
         return localNetworkConfig;
