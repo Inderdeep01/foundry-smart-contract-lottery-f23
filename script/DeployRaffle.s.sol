@@ -4,10 +4,12 @@ pragma solidity 0.8.19;
 import {Script} from "forge-std/Script.sol";
 import {Raffle} from "src/Raffle.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
-import {SubscriptionFactory, ConsumerManager} from "script/Interactions.s.sol";
+import {SubscriptionFactory, SubcriptionManager, ConsumerManager} from "script/Interactions.s.sol";
 
 contract DeployRaffle is Script {
-    function run() public {}
+    function run() public {
+        deployContract();
+    }
 
     function deployContract() public returns(Raffle, HelperConfig){
         HelperConfig helperConfig = new HelperConfig();
@@ -17,6 +19,9 @@ contract DeployRaffle is Script {
             // create a new subscription
             SubscriptionFactory subscriptionFactory = new SubscriptionFactory();
             config.subId = subscriptionFactory.createSubsctiption(config.vrfCoordinator);
+            // now fund the subscription
+            SubcriptionManager subscriptionManager = new SubcriptionManager();
+            subscriptionManager.fundSubscription(config.vrfCoordinator, config.subId, config.link);
         }
 
         vm.startBroadcast();
